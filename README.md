@@ -4,7 +4,7 @@ Config definition and validation for database writer
 ## Usage
 Require with composer:
 
-```yml
+```bash
 
     composer require keboola/db-writer-config
 
@@ -13,7 +13,7 @@ Require with composer:
 ## Development
 
 Clone this repository and init the workspace with following command:
-```
+```bash
     git clone git@github.com:keboola/db-writer-config.git
     cd db-writer-config
     docker-compose build
@@ -21,7 +21,7 @@ Clone this repository and init the workspace with following command:
 ```
 
 Run the test suite using this command:
-```
+```bash
     docker-compose run --rm dev composer tests
 ```
 
