@@ -1,28 +1,30 @@
-# my-component
+# Database writer config
+Config definition and validation for database writer
 
-> Fill in description
+## Usage
+Require with composer:
 
-# Usage
+```bash
 
-> fill in usage instructions
-
-## Development
- 
-Clone this repository and init the workspace with following command:
+    composer require keboola/db-writer-config
 
 ```
-git clone https://github.com/keboola/my-component
-cd my-component
-docker-compose build
-docker-compose run --rm dev composer install --no-scripts
+
+## Development
+
+Clone this repository and init the workspace with following command:
+```bash
+    git clone git@github.com:keboola/db-writer-config.git
+    cd db-writer-config
+    docker-compose build
+    docker-compose run --rm dev composer install --no-scripts
 ```
 
 Run the test suite using this command:
-
+```bash
+    docker-compose run --rm dev composer tests
 ```
-docker-compose run --rm dev composer tests
-```
- 
-# Integration
 
-For information about deployment and integration with KBC, please refer to the [deployment section of developers documentation](https://developers.keboola.com/extend/component/deployment/) 
+## License
+
+MIT licensed, see [LICENSE](./LICENSE) file.
