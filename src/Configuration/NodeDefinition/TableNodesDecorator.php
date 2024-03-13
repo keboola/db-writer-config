@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Keboola\DbWriterConfig\Configuration\NodeDefinition;
 
 use Symfony\Component\Config\Definition\Builder\NodeBuilder;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 
 class TableNodesDecorator implements DecoratorInterface
 {
@@ -47,7 +48,22 @@ class TableNodesDecorator implements DecoratorInterface
     {
         $nodeBuilder
             ->arrayNode('items')
-                ->arrayPrototype()
+            ->validate()->always(function ($v) {
+                $validItem = false;
+                foreach ($v as $item) {
+                    if ($item['type'] !== 'ignore') {
+                        $validItem = true;
+                        break;
+                    }
+                }
+                if (!$validItem) {
+                    throw new InvalidConfigurationException(
+                        'At least one item must be defined and cannot be ignored.',
+                    );
+                }
+                return $v;
+            })->end()
+            ->arrayPrototype()
                 ->children()
                     ->scalarNode('name')->isRequired()->cannotBeEmpty()->end()
                     ->scalarNode('dbName')->isRequired()->cannotBeEmpty()->end()

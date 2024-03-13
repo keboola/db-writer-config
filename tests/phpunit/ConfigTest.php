@@ -377,6 +377,83 @@ class ConfigTest extends TestCase
         $this->assertEquals($configurationArray, $config->getData());
     }
 
+    public function testFailOnEmptyItems(): void
+    {
+        $configurationArray = [
+            'parameters' => [
+                'data_dir' => '/code/tests/Keboola/DbWriter/../../data',
+                'writer_class' => 'MySQL',
+                'db' => [
+                    'host' => 'mysql',
+                    'user' => 'root',
+                    '#password' => 'rootpassword',
+                    'database' => 'test',
+                    'port' => 3306,
+                    'initQueries' => [],
+                ],
+                'incremental' => false,
+                'enabled' => true,
+                'primaryKey' => [],
+                'tableId' => 'tableColumns',
+                'dbName' => 'tableColumns',
+                'export' => true,
+                'items' => [],
+            ],
+        ];
+
+        $this->expectException(ConfigUserException::class);
+        $this->expectExceptionMessage('At least one item must be defined and cannot be ignored.');
+
+        new Config($configurationArray, new ConfigRowDefinition());
+    }
+
+    public function testFailOnAllIgnoredItems(): void
+    {
+        $configurationArray = [
+            'parameters' => [
+                'data_dir' => '/code/tests/Keboola/DbWriter/../../data',
+                'writer_class' => 'MySQL',
+                'db' => [
+                    'host' => 'mysql',
+                    'user' => 'root',
+                    '#password' => 'rootpassword',
+                    'database' => 'test',
+                    'port' => 3306,
+                    'initQueries' => [],
+                ],
+                'incremental' => false,
+                'enabled' => true,
+                'primaryKey' => [],
+                'tableId' => 'tableColumns',
+                'dbName' => 'tableColumns',
+                'export' => true,
+                'items' => [
+                    [
+                        'name' => 'name',
+                        'dbName' => 'dbName',
+                        'type' => 'ignore',
+                        'size' => 123,
+                        'nullable' => true,
+                        'default' => 'default',
+                    ],
+                    [
+                        'name' => 'name1',
+                        'dbName' => 'dbName2',
+                        'type' => 'ignore',
+                        'size' => '456',
+                        'nullable' => true,
+                        'default' => 'default',
+                    ],
+                ],
+            ],
+        ];
+
+        $this->expectException(ConfigUserException::class);
+        $this->expectExceptionMessage('At least one item must be defined and cannot be ignored.');
+
+        new Config($configurationArray, new ConfigRowDefinition());
+    }
+
     public function testConfigWithSshTunnelEnabledMissingPrivateKey(): void
     {
         $configurationArray = [
@@ -564,7 +641,16 @@ class ConfigTest extends TestCase
                 'tableId' => 'tableColumns',
                 'dbName' => 'tableColumns',
                 'export' => true,
-                'items' => [],
+                'items' => [
+                    [
+                        'name' => 'nameValue',
+                        'dbName' => 'dbNameValues',
+                        'type' => 'typeValue',
+                        'size' => 12345,
+                        'nullable' => true,
+                        'default' => 'defaultValue',
+                    ],
+                ],
             ],
         ];
 
