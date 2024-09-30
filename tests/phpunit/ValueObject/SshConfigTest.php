@@ -19,7 +19,7 @@ class SshConfigTest extends TestCase
                 'public' => 'public',
             ],
             'sshHost' => 'sshHost',
-            'sshPort' => 22,
+            'sshPort' => '22',
             'remoteHost' => 'remoteHost',
             'remotePort' => '3306',
             'localPort' => '3306',
@@ -32,7 +32,7 @@ class SshConfigTest extends TestCase
         Assert::assertEquals('private', $sshConfig->getPrivateKey());
         Assert::assertEquals('public', $sshConfig->getPublicKey());
         Assert::assertEquals('sshHost', $sshConfig->getSshHost());
-        Assert::assertEquals(22, $sshConfig->getSshPort());
+        Assert::assertEquals('22', $sshConfig->getSshPort());
         Assert::assertEquals('remoteHost', $sshConfig->getRemoteHost());
         Assert::assertEquals(3306, $sshConfig->getRemotePort());
         Assert::assertEquals(3306, $sshConfig->getLocalPort());
