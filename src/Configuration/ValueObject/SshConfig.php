@@ -13,7 +13,7 @@ readonly class SshConfig
      *     'enabled': bool,
      *     'keys': array,
      *     'sshHost': string,
-     *     'sshPort'?: int,
+     *     'sshPort'?: string,
      *     'remoteHost'?: string,
      *     'remotePort'?: int,
      *     'localPort'?: int,
@@ -40,7 +40,7 @@ readonly class SshConfig
         private string $privateKey,
         private string $publicKey,
         private string $sshHost,
-        private ?int $sshPort,
+        private ?string $sshPort,
         private ?string $remoteHost,
         private ?string $remotePort,
         private ?string $localPort,
@@ -68,7 +68,7 @@ readonly class SshConfig
         return $this->sshHost;
     }
 
-    public function getSshPort(): int
+    public function getSshPort(): string
     {
         if ($this->sshPort === null) {
             throw new PropertyNotSetException('SSH port is not set.');
@@ -116,7 +116,7 @@ readonly class SshConfig
      *         'public': string
      *     },
      *     'sshHost': string,
-     *     'sshPort': ?int,
+     *     'sshPort': ?string,
      *     'remoteHost': ?string,
      *     'remotePort': ?string,
      *     'localPort': ?string,
