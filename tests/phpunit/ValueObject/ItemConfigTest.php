@@ -71,4 +71,56 @@ class ItemConfigTest extends TestCase
         self::assertTrue($itemConfig->getNullable());
         self::assertTrue($itemConfig->hasDefault());
     }
+
+    /**
+     * @throws PropertyNotSetException
+     */
+    public function testSizeZero(): void
+    {
+        $config = [
+            'name' => 'col',
+            'dbName' => 'col',
+            'type' => 'timestamp_ntz',
+            'size' => '0',
+        ];
+
+        $itemConfig = ItemConfig::fromArray($config);
+
+        self::assertTrue($itemConfig->hasSize());
+        self::assertSame('0', $itemConfig->getSize());
+    }
+
+    /**
+     * @throws PropertyNotSetException
+     */
+    public function testDefaultZero(): void
+    {
+        $config = [
+            'name' => 'col',
+            'dbName' => 'col',
+            'type' => 'int',
+            'default' => '0',
+        ];
+
+        $itemConfig = ItemConfig::fromArray($config);
+
+        self::assertTrue($itemConfig->hasDefault());
+        self::assertSame('0', $itemConfig->getDefault());
+    }
+
+    public function testEmptyStringSizeAndDefault(): void
+    {
+        $config = [
+            'name' => 'col',
+            'dbName' => 'col',
+            'type' => 'varchar',
+            'size' => '',
+            'default' => '',
+        ];
+
+        $itemConfig = ItemConfig::fromArray($config);
+
+        self::assertFalse($itemConfig->hasSize());
+        self::assertFalse($itemConfig->hasDefault());
+    }
 }
