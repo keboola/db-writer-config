@@ -164,4 +164,59 @@ class ExportConfigTest extends TestCase
         $this->expectExceptionMessage('Table "tableId" in storage input mapping cannot be found.');
         ExportConfig::fromArray($config, $inputMapping);
     }
+
+    public function testPropagateDescriptionsDefaultsToTrue(): void
+    {
+        $exportConfig = ExportConfig::fromArray($this->getMinimalConfig(), $this->getInputMapping());
+
+        Assert::assertTrue($exportConfig->shouldPropagateDescriptions());
+    }
+
+    public function testPropagateDescriptionsFalse(): void
+    {
+        $config = $this->getMinimalConfig();
+        $config['propagateDescriptions'] = false;
+
+        $exportConfig = ExportConfig::fromArray($config, $this->getInputMapping());
+
+        Assert::assertFalse($exportConfig->shouldPropagateDescriptions());
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function getMinimalConfig(): array
+    {
+        return [
+            'data_dir' => 'data_dir',
+            'writer_class' => 'writer_class',
+            'db' => [
+                'database' => 'database',
+                'user' => 'user',
+            ],
+            'tableId' => 'tableId',
+            'dbName' => 'dbName',
+            'items' => [
+                [
+                    'name' => 'nameValue',
+                    'dbName' => 'dbNameValues',
+                    'type' => 'typeValue',
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * @return array<int, array{source: string, destination: string, columns: string[]}>
+     */
+    private function getInputMapping(): array
+    {
+        return [
+            [
+                'source' => 'tableId',
+                'destination' => 'destination',
+                'columns' => [],
+            ],
+        ];
+    }
 }

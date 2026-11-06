@@ -8,6 +8,7 @@ use Keboola\DbWriterConfig\Config;
 use Keboola\DbWriterConfig\Configuration\ActionConfigDefinition;
 use Keboola\DbWriterConfig\Configuration\ConfigDefinition;
 use Keboola\DbWriterConfig\Configuration\ConfigRowDefinition;
+use Keboola\DbWriterConfig\Configuration\ValueObject\ExportConfig;
 use Keboola\DbWriterConfig\Exception\UserException as ConfigUserException;
 use PHPUnit\Framework\TestCase;
 
@@ -48,6 +49,7 @@ class ConfigTest extends TestCase
                         'incremental' => false,
                         'primaryKey' => [],
                         'items' => [],
+                        'propagateDescriptions' => true,
                     ],
                 ],
             ],
@@ -117,6 +119,7 @@ class ConfigTest extends TestCase
                         'default' => 'default',
                     ],
                 ],
+                'propagateDescriptions' => true,
 
             ],
         ];
@@ -655,7 +658,9 @@ class ConfigTest extends TestCase
         ];
 
         $config = new Config($configurationArray, new ConfigRowDefinition());
-        $this->assertEquals($configurationArray, $config->getData());
+        $expected = $configurationArray;
+        $expected['parameters']['propagateDescriptions'] = true;
+        $this->assertEquals($expected, $config->getData());
     }
 
     public function testTestConfigWithExtraKeysActionConfigRowDefinition(): void
@@ -714,6 +719,138 @@ class ConfigTest extends TestCase
         $this->expectExceptionMessage($exceptionMessage);
 
         new Config($configurationArray, new ConfigRowDefinition());
+    }
+
+    public function testPropagateDescriptionsDefaultsToTrueInConfigTables(): void
+    {
+        $config = new Config($this->getConfigArray([]), new ConfigDefinition());
+
+        $this->assertTrue($config->getParameters()['tables'][0]['propagateDescriptions']);
+    }
+
+    public function testPropagateDescriptionsDefaultsToTrueInConfigRow(): void
+    {
+        $config = new Config($this->getConfigRowArray([]), new ConfigRowDefinition());
+
+        $this->assertTrue($config->getParameters()['propagateDescriptions']);
+    }
+
+    public function testPropagateDescriptionsFalseInConfigTables(): void
+    {
+        $config = new Config(
+            $this->getConfigArray(['propagateDescriptions' => false]),
+            new ConfigDefinition(),
+        );
+        $parameters = $config->getParameters();
+        $this->assertFalse($parameters['tables'][0]['propagateDescriptions']);
+
+        $exportConfig = ExportConfig::fromArray(
+            array_merge($parameters, $parameters['tables'][0]),
+            $this->getInputMapping(),
+        );
+        $this->assertFalse($exportConfig->shouldPropagateDescriptions());
+    }
+
+    public function testPropagateDescriptionsFalseInConfigRow(): void
+    {
+        $config = new Config(
+            $this->getConfigRowArray(['propagateDescriptions' => false]),
+            new ConfigRowDefinition(),
+        );
+        $this->assertFalse($config->getParameters()['propagateDescriptions']);
+
+        $exportConfig = ExportConfig::fromArray($config->getParameters(), $this->getInputMapping());
+        $this->assertFalse($exportConfig->shouldPropagateDescriptions());
+    }
+
+    public function testPropagateDescriptionsNonBooleanInConfigTables(): void
+    {
+        $this->expectException(ConfigUserException::class);
+        $this->expectExceptionMessage(
+            'Invalid type for path "root.parameters.tables.0.propagateDescriptions". ' .
+            'Expected "bool", but got "string".',
+        );
+
+        new Config($this->getConfigArray(['propagateDescriptions' => 'no']), new ConfigDefinition());
+    }
+
+    public function testPropagateDescriptionsNonBooleanInConfigRow(): void
+    {
+        $this->expectException(ConfigUserException::class);
+        $this->expectExceptionMessage(
+            'Invalid type for path "root.parameters.propagateDescriptions". Expected "bool", but got "string".',
+        );
+
+        new Config($this->getConfigRowArray(['propagateDescriptions' => 'no']), new ConfigRowDefinition());
+    }
+
+    /**
+     * @param array<string, mixed> $tableOverrides
+     * @return array<string, mixed>
+     */
+    private function getConfigArray(array $tableOverrides): array
+    {
+        return [
+            'parameters' => [
+                'data_dir' => '/code/tests/Keboola/DbWriter/../../data',
+                'writer_class' => 'MySQL',
+                'db' => $this->getDbConfigurationArray(),
+                'tables' => [
+                    array_merge($this->getTableConfigArray(), $tableOverrides),
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $tableOverrides
+     * @return array<string, mixed>
+     */
+    private function getConfigRowArray(array $tableOverrides): array
+    {
+        return [
+            'parameters' => array_merge(
+                [
+                    'data_dir' => '/code/tests/Keboola/DbWriter/../../data',
+                    'writer_class' => 'MySQL',
+                    'db' => $this->getDbConfigurationArray(),
+                ],
+                $this->getTableConfigArray(),
+                $tableOverrides,
+            ),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function getTableConfigArray(): array
+    {
+        return [
+            'tableId' => 'tableColumns',
+            'dbName' => 'tableColumns',
+            'items' => [
+                [
+                    'name' => 'name',
+                    'dbName' => 'dbName',
+                    'type' => 'varchar',
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * @return array<int, array{source: string, destination: string, columns: string[]}>
+     */
+    private function getInputMapping(): array
+    {
+        return [
+            [
+                'source' => 'tableColumns',
+                'destination' => 'tableColumns.csv',
+                'columns' => [],
+            ],
+        ];
     }
 
     /**
