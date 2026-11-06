@@ -59,6 +59,9 @@ readonly class ExportConfig
     }
 
     /**
+     * Subclasses overriding fromArray() or this constructor must pass $propagateDescriptions through;
+     * the default would otherwise silently ignore `propagateDescriptions: false`.
+     *
      * @param string[] $primaryKey
      * @param ItemConfig[] $items
      */
