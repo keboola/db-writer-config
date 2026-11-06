@@ -48,6 +48,7 @@ class ConfigTest extends TestCase
                         'incremental' => false,
                         'primaryKey' => [],
                         'items' => [],
+                        'propagateDescriptions' => true,
                     ],
                 ],
             ],
@@ -117,7 +118,7 @@ class ConfigTest extends TestCase
                         'default' => 'default',
                     ],
                 ],
-
+                'propagateDescriptions' => true,
             ],
         ];
         $this->assertEquals($expected, $config->getData());
@@ -655,7 +656,71 @@ class ConfigTest extends TestCase
         ];
 
         $config = new Config($configurationArray, new ConfigRowDefinition());
-        $this->assertEquals($configurationArray, $config->getData());
+        $expected = $configurationArray;
+        $expected['parameters']['propagateDescriptions'] = true;
+        $this->assertEquals($expected, $config->getData());
+    }
+
+    public function testPropagateDescriptionsDefaultsToTrue(): void
+    {
+        $config = new Config($this->getRowConfigurationArray(), new ConfigRowDefinition());
+        $this->assertTrue($config->getValue(['parameters', 'propagateDescriptions']));
+    }
+
+    public function testPropagateDescriptionsCanBeDisabled(): void
+    {
+        $configurationArray = $this->getRowConfigurationArray();
+        $configurationArray['parameters']['propagateDescriptions'] = false;
+
+        $config = new Config($configurationArray, new ConfigRowDefinition());
+        $this->assertFalse($config->getValue(['parameters', 'propagateDescriptions']));
+    }
+
+    public function testPropagateDescriptionsRejectsNonBoolean(): void
+    {
+        $configurationArray = $this->getRowConfigurationArray();
+        $configurationArray['parameters']['propagateDescriptions'] = 'yes';
+
+        $this->expectException(ConfigUserException::class);
+        $this->expectExceptionMessage('root.parameters.propagateDescriptions');
+        new Config($configurationArray, new ConfigRowDefinition());
+    }
+
+    public function testPropagateDescriptionsInTablesConfig(): void
+    {
+        $configurationArray = [
+            'parameters' => [
+                'data_dir' => '/data',
+                'writer_class' => 'MySQL',
+                'db' => $this->getDbConfigurationArray(),
+                'tables' => [
+                    ['tableId' => 'in.c-main.a', 'dbName' => 'a'],
+                    ['tableId' => 'in.c-main.b', 'dbName' => 'b', 'propagateDescriptions' => false],
+                ],
+            ],
+        ];
+
+        $config = new Config($configurationArray, new ConfigDefinition());
+        $this->assertTrue($config->getValue(['parameters', 'tables', '0', 'propagateDescriptions']));
+        $this->assertFalse($config->getValue(['parameters', 'tables', '1', 'propagateDescriptions']));
+    }
+
+    public function testPropagateDescriptionsInTablesConfigRejectsNonBoolean(): void
+    {
+        $configurationArray = [
+            'parameters' => [
+                'data_dir' => '/data',
+                'writer_class' => 'MySQL',
+                'db' => $this->getDbConfigurationArray(),
+                'tables' => [
+                    ['tableId' => 'in.c-main.a', 'dbName' => 'a', 'propagateDescriptions' => 'no'],
+                ],
+            ],
+        ];
+
+        $this->expectException(ConfigUserException::class);
+        $this->expectExceptionMessage('propagateDescriptions');
+        new Config($configurationArray, new ConfigDefinition());
     }
 
     public function testTestConfigWithExtraKeysActionConfigRowDefinition(): void
@@ -714,6 +779,25 @@ class ConfigTest extends TestCase
         $this->expectExceptionMessage($exceptionMessage);
 
         new Config($configurationArray, new ConfigRowDefinition());
+    }
+
+    /**
+     * @return array{parameters: array<string, mixed>}
+     */
+    protected function getRowConfigurationArray(): array
+    {
+        return [
+            'parameters' => [
+                'data_dir' => '/data',
+                'writer_class' => 'MySQL',
+                'db' => $this->getDbConfigurationArray(),
+                'tableId' => 'in.c-main.table',
+                'dbName' => 'table',
+                'items' => [
+                    ['name' => 'id', 'dbName' => 'id', 'type' => 'int'],
+                ],
+            ],
+        ];
     }
 
     /**
