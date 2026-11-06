@@ -20,7 +20,8 @@ readonly class ExportConfig
      *     incremental?: bool,
      *     export?: bool,
      *     primaryKey?: string[],
-     *     items: array
+     *     items: array,
+     *     propagateDescriptions?: bool
      * }
      * @param $inputMapping array{
      *     source: string,
@@ -53,10 +54,14 @@ readonly class ExportConfig
             !empty($config['primaryKey']) ? $config['primaryKey'] : null,
             array_map(fn($v) => ItemConfig::fromArray($v), $config['items']),
             $tableFilePath,
+            $config['propagateDescriptions'] ?? true,
         );
     }
 
     /**
+     * Subclasses overriding fromArray() or this constructor must pass $propagateDescriptions through;
+     * the default would otherwise silently ignore `propagateDescriptions: false`.
+     *
      * @param string[] $primaryKey
      * @param ItemConfig[] $items
      */
@@ -71,6 +76,7 @@ readonly class ExportConfig
         private ?array $primaryKey,
         private array $items,
         private string $tableFilePath,
+        private bool $propagateDescriptions = true,
     ) {
     }
 
@@ -137,5 +143,10 @@ readonly class ExportConfig
     public function getTableFilePath(): string
     {
         return $this->tableFilePath;
+    }
+
+    public function shouldPropagateDescriptions(): bool
+    {
+        return $this->propagateDescriptions;
     }
 }

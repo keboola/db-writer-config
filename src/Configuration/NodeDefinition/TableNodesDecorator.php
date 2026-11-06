@@ -17,6 +17,7 @@ class TableNodesDecorator implements DecoratorInterface
         $this->addExportNode($nodeBuilder);
         $this->addPrimaryKeyNode($nodeBuilder);
         $this->addItemsNode($nodeBuilder);
+        $this->addPropagateDescriptionsNode($nodeBuilder);
     }
 
     protected function addTableIdNode(NodeBuilder $nodeBuilder): void
@@ -42,6 +43,11 @@ class TableNodesDecorator implements DecoratorInterface
     protected function addPrimaryKeyNode(NodeBuilder $nodeBuilder): void
     {
         $nodeBuilder->arrayNode('primaryKey')->scalarPrototype()->cannotBeEmpty()->end();
+    }
+
+    protected function addPropagateDescriptionsNode(NodeBuilder $nodeBuilder): void
+    {
+        $nodeBuilder->booleanNode('propagateDescriptions')->defaultTrue();
     }
 
     protected function addItemsNode(NodeBuilder $nodeBuilder): void
